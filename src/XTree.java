@@ -1,44 +1,44 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
+
 /**
  * Класс бинарного дерева
  */
 public class XTree<T> {
     private Joint<T> root;
-    private boolean is_sorted = false;
     private Joint<T> active_node;
     public XTree(T d) {
         this.root = new Joint<>(d);
     }
 
-    //конструкторы и операторы копирования и сравнения
+    // Конструктор копирования для узлов
+    private Joint<T> copyNodes(Joint<T> node) {
+        if (node == null) {
+            return null;
+        }
+        // Создаем новый узел с копией данных
+        Joint<T> newNode = new Joint<>(node.data);
+        newNode.Left = copyNodes(node.Left);   // Копируем левое поддерево
+        newNode.Right = copyNodes(node.Right); // Копируем правое поддерево
+        return newNode;
+    }
+
+    // Конструктор копирования для дерева
+    public XTree(XTree<T> other) {
+        this.root = copyNodes(other.root); // Копируем дерево
+        this.active_node = this.root;      // Ставим активный узел на корень нового дерева
+    }
+
+    // Метод для глубокого копирования дерева
+    public XTree<T> deepCopy() {
+        return new XTree<>(this);
+    }
 
     public XTree() {
-        this.root = new Joint<>(null);
-        this.active_node = this.root;
     }
 
-    public void sort() {
-        setIs_sorted(true);
-        this.active_node = this.root;
-    }
-
-    public boolean isIs_sorted() {
-        return is_sorted;
-    }
-
-    public void setIs_sorted(boolean is_sorted) {
-        this.is_sorted = is_sorted;
-    }
-
-    public void add(T data) {
-
-    }
-
-    public void delete(T data) {
-
-    }
 
     public Joint<T> getRoot() {
         return root;
@@ -88,10 +88,18 @@ public class XTree<T> {
         }
     }
 
-    // Применение к указанному узлу дерева функции, метод NLR
-    public void applyFunction(Joint<T> node, Consumer<T> func) {
+    // Применение к указанному узлу дерева функции, метод NLR, можно для печати оставить
+   public static <T> void applyFunction(Joint<T> node, Consumer<T> func) {
         if (node != null) {
             func.accept(node.data);
+            applyFunction(node.Left, func);
+            applyFunction(node.Right, func);
+        }
+    }
+    // Альтернативное применение функции с большими возможностями в плане используемой функции
+    public static <T> void applyFunction(Joint<T> node, Function<T, T> func) {
+        if (node != null) {
+            node.data = func.apply(node.data);
             applyFunction(node.Left, func);
             applyFunction(node.Right, func);
         }
@@ -106,27 +114,38 @@ public class XTree<T> {
             node.Right = null;
         }
     }
+    // после вызова корню присваивать null
 
     // Подсчет количества узлов в дереве
-    public int countNodes(Joint<T> node) {
+    private static <T> int pcountNodes(Joint <T> node) {
         if (node == null) {
             return 0;
         }
-        return 1 + countNodes(node.Left) + countNodes(node.Right);
+        return 1 + pcountNodes(node.Left) + pcountNodes(node.Right);
     }
 
-    // Определение глубины дерева
-    public int treeDepth(Joint<T> node) {
-        if (node == null) {
-            return 0;
-        }
-        int leftDepth = treeDepth(node.Left);
-        int rightDepth = treeDepth(node.Right);
+    public int countNodes() {
+        return pcountNodes(this.root);
+    }
+
+    // Определение глубины дерева (сломал)
+    private static <T> int ptreeDepth(Joint<T> node) {
+        if (node == null) return -1;
+        int leftDepth = ptreeDepth(node.Left);
+        int rightDepth = ptreeDepth(node.Right);
         return Math.max(leftDepth, rightDepth) + 1;
     }
 
+   public int treeDepth() {
+        return ptreeDepth(this.root);
+   }
+
+    public boolean isEmpty() {
+        return root == null;
+    }
+
     // Печать дерева в произвольном порядке (например, NLR)
-    public void printRandomOrder() {
+    public void printNLR() {
         List<T> result = traverseNLR(this.root);
         for (T data : result) {
             System.out.println(data);
