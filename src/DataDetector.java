@@ -22,10 +22,10 @@ public class DataDetector<T extends Comparable<T>> extends XTree<T> {
         setRoot(insertRec(getRoot(), data));
     }
 
-    // Рекурсивный метод для вставки
+    /// Return Joint address, inserts new node in the BST
     private Joint<T> insertRec(Joint<T> node, T data) {
         if (node == null) {
-            return new Joint<>(data);
+            return new Joint<>(data); // Created new object, so using <>
         }
 
         if (data.compareTo(node.data) < 0) {
@@ -76,22 +76,25 @@ public class DataDetector<T extends Comparable<T>> extends XTree<T> {
         if (node == null) {
             return null;
         }
-
+        // LNR
         if (data.compareTo(node.data) < 0) {
             node.Left = deleteRec(node.Left, data);
         } else if (data.compareTo(node.data) > 0) {
             node.Right = deleteRec(node.Right, data);
         } else {
             // Узел найден, есть три случая
+            // без листьев
             if (node.Left == null && node.Right == null) {
                 return null;
             }
+            // только с правым
             if (node.Left == null) {
                 return node.Right;
+                // только с левым
             } else if (node.Right == null) {
                 return node.Left;
             }
-
+            // когда оба есть
             // Найти минимальный элемент в правом поддереве
             node.data = findMinRec(node.Right).data;
             node.Right = deleteRec(node.Right, node.data);
@@ -144,5 +147,55 @@ public class DataDetector<T extends Comparable<T>> extends XTree<T> {
      */
     public List<T> inOrderTraversal() {
         return traverseLNR(getRoot());
+    }
+
+    /**
+     * Метод поиска следующего наибольшего узла (in-order successor)
+     * @param data данные узла, для которого нужно найти следующего наибольшего
+     * @return данные следующего наибольшего узла, если он существует, иначе null
+     */
+    public T findSuccessor(T data) {
+        Joint<T> node = getRoot();
+        Joint<T> target = searchNode(node, data);
+
+        if (target == null) {
+            return null; // Узел не найден
+        }
+
+        // Случай 1: Если есть правый потомок, найти минимальный узел в правом поддереве
+        if (target.Right != null) {
+            return findMinRec(target.Right).data;
+        }
+
+        // Случай 2: Если правого потомка нет, поднимаемся вверх
+        Joint<T> successor = null;
+        Joint<T> ancestor = getRoot();
+        while (ancestor != target) {
+            if (data.compareTo(ancestor.data) < 0) {
+                successor = ancestor;  // Потенциальный правопреемник
+                ancestor = ancestor.Left;
+            } else {
+                ancestor = ancestor.Right;
+            }
+        }
+
+        return (successor != null) ? successor.data : null;
+    }
+
+    /**
+     * Рекурсивный метод для поиска узла по данным
+     * @param node корень поддерева
+     * @param data данные для поиска
+     * @return узел с заданными данными или null, если узел не найден
+     */
+    private Joint<T> searchNode(Joint<T> node, T data) {
+        if (node == null || data.compareTo(node.data) == 0) {
+            return node;
+        }
+        if (data.compareTo(node.data) < 0) {
+            return searchNode(node.Left, data);
+        } else {
+            return searchNode(node.Right, data);
+        }
     }
 }

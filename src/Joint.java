@@ -31,4 +31,5 @@ public class Joint<T> {
         if (other == null) return false;
         return this.data.equals(other.data);
     }
+
 }

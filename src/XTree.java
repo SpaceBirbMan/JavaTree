@@ -13,7 +13,7 @@ public class XTree<T> {
         this.root = new Joint<>(d);
     }
 
-    // Конструктор копирования для узлов
+    /// Конструктор копирования для узлов (NLR)
     private Joint<T> copyNodes(Joint<T> node) {
         if (node == null) {
             return null;
@@ -106,6 +106,12 @@ public class XTree<T> {
     }
 
     // Удаление дерева
+
+    /**
+     * Удаление дерева
+     * Удаление корня дерева автоматически не происходит, его нужно отвязывать вручную.
+     * @param node
+     */
     public void deleteTree(Joint<T> node) {
         if (node != null) {
             deleteTree(node.Left);  // Удаляем левое поддерево

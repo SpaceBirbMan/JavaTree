@@ -1,5 +1,8 @@
 import java.util.List;
 
+import static java.lang.Math.cos;
+import static java.lang.Math.incrementExact;
+
 public class Main {
     public static void main(String[] args) {
 
@@ -32,6 +35,8 @@ public class Main {
         System.out.println("LRN обход:");
         List<Integer> lrnResult = XTree.traverseLRN(root);
         assert lrnResult.equals(List.of(3, 7, 5, 15, 10)) : "LRN обход должен быть [3, 7, 5, 15, 10]";
+
+        // сделать обход дерева на пустом, пне, вырожденном(ых)
 
         // Тест печати данных в произвольном порядке
         System.out.println("\nТест 4: Печать дерева в произвольном порядке (NLR):");
@@ -162,6 +167,52 @@ public class Main {
         assert leftChild.isLeaf() : "Ошибка! Узел должен быть листом.";
         assert !parent.isLeaf() : "Ошибка! Узел с потомками не должен быть листом.";
         System.out.println("Проверка на лист успешно выполнена.");
+        XTree.applyFunction(tree.getRoot(), (Integer x) -> incrementExact(x));
+        // Допилить тесты по этой функции
+        tree.print();
+
+        XTree<Integer> t1 = new XTree<>(1);
+        XTree<Integer> t2 = new XTree<>(1);
+        XTree<Integer> t22 = new XTree<>(1);
+        XTree<Integer> t3 = new XTree<>();
+
+        Joint<Integer> root2 = t2.getRoot();
+        root2.Left = new Joint<>(3);
+        root2.Left.Left = new Joint<>(4);
+        Joint<Integer> root3 = t22.getRoot();
+        root3.Right = new Joint<>(3);
+        root3.Right.Right = new Joint<>(4);
+        // Проверка для дерева t1 (один узел)
+        List<Integer> a = XTree.traverseLNR(t1.getRoot());
+        List<Integer> c = XTree.traverseLRN(t1.getRoot());
+        List<Integer> b = XTree.traverseNLR(t1.getRoot());
+        assert a.equals(List.of(1)) : "LNR обход для t1 должен быть [1]";
+        assert b.equals(List.of(1)) : "NLR обход для t1 должен быть [1]";
+        assert c.equals(List.of(1)) : "LRN обход для t1 должен быть [1]";
+
+        // Проверка для дерева t2 (левое дерево)
+        List<Integer> a1 = XTree.traverseLNR(t2.getRoot());
+        List<Integer> c2 = XTree.traverseLRN(t2.getRoot());
+        List<Integer> b3 = XTree.traverseNLR(t2.getRoot());
+        assert a1.equals(List.of(4, 3, 1)) : "LNR обход для t2 должен быть [4, 3, 1]";
+        assert b3.equals(List.of(1, 3, 4)) : "NLR обход для t2 должен быть [1, 3, 4]";
+        assert c2.equals(List.of(4, 3, 1)) : "LRN обход для t2 должен быть [4, 3, 1]";
+
+        // Проверка для пустого дерева t3
+        List<Integer> a11 = XTree.traverseLNR(t3.getRoot());
+        List<Integer> c12 = XTree.traverseLRN(t3.getRoot());
+        List<Integer> b13 = XTree.traverseNLR(t3.getRoot());
+        assert a11.isEmpty() : "LNR обход для пустого дерева t3 должен быть пустым";
+        assert b13.isEmpty() : "NLR обход для пустого дерева t3 должен быть пустым";
+        assert c12.isEmpty() : "LRN обход для пустого дерева t3 должен быть пустым";
+
+        // Проверка для дерева t22 (правое дерево)
+        List<Integer> a21 = XTree.traverseLNR(t22.getRoot());
+        List<Integer> c22 = XTree.traverseLRN(t22.getRoot());
+        List<Integer> b23 = XTree.traverseNLR(t22.getRoot());
+        assert a21.equals(List.of(1, 3, 4)) : "LNR обход для t22 должен быть [1, 3, 4]";
+        assert b23.equals(List.of(1, 3, 4)) : "NLR обход для t22 должен быть [1, 3, 4]";
+        assert c22.equals(List.of(4, 3, 1)) : "LRN обход для t22 должен быть [4, 3, 1]";
 
     }
 }
