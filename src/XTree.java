@@ -6,9 +6,13 @@ import java.util.function.Function;
 /**
  * Класс бинарного дерева
  */
-public class XTree<T> {
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Stack;
+
+public class XTree<T> implements Iterable<T> {
     private Joint<T> root;
-    private Joint<T> active_node;
+
     public XTree(T d) {
         this.root = new Joint<>(d);
     }
@@ -25,30 +29,120 @@ public class XTree<T> {
         return newNode;
     }
 
-    // Конструктор копирования для дерева
+    //написать комент какой итератор возвращается
+    @Override
+    public Iterator<T> iterator() {
+        return new XTreeIterator<>(root);
+    }
+
+    /**
+     * Вложенный класс для итератора.
+     * Итератор для бинарного дерева, реализующий обход дерева в глубину (in-order traversal).
+     * То есть сначала обходятся все левые узлы, затем текущий узел, и в конце - правые узлы.
+     */
+    private static class XTreeIterator<T> implements Iterator<T> {
+        // Стек для хранения узлов дерева, которые нужно обойти
+        private Stack<Joint<T>> stack;
+
+        /**
+         * Конструктор итератора.
+         * Инициализирует стек и добавляет в него все левые узлы начиная с корневого.
+         *
+         * @param root Корневой узел дерева
+         */
+        public XTreeIterator(Joint<T> root) {
+            stack = new Stack<>(); // Создаем новый стек
+            pushLeft(root);        // Добавляем в стек все левые узлы от корня до самого нижнего
+        }
+
+        /**
+         * Метод для добавления узлов в стек.
+         *
+         * @param node Узел, с которого начинается добавление
+         */
+        private void pushLeft(Joint<T> node) {
+            while (node != null) {
+                stack.push(node);
+                node = node.Left;
+            }
+        }
+
+        /**
+         * Проверка, есть ли в дереве еще не обработанные узлы.
+         *
+         * @return true, если есть еще узлы для обхода, false — если нет
+         */
+        @Override
+        public boolean hasNext() {
+            return !stack.isEmpty();
+        }
+
+        /**
+         * Возвращает следующий элемент в обходе дерева.
+         *
+         * @return Следующий элемент дерева типа T
+         * @throws NoSuchElementException если больше нет элементов
+         */
+        @Override
+        public T next() {
+            if (!hasNext()) { // Если больше нет элементов, кидаем исключение
+                throw new NoSuchElementException();
+            }
+
+            // Получаем узел, находящийся на вершине стека
+            Joint<T> node = stack.pop();
+            T result = node.data;
+
+            // Если у узла есть правый потомок, добавляем его и все его левые узлы в стек
+            if (node.Right != null) {
+                pushLeft(node.Right);
+            }
+
+            return result;
+        }
+    }
+
+
+    /**
+     * Конструктор копирования дерева
+     * @param other
+     */
     public XTree(XTree<T> other) {
-        this.root = copyNodes(other.root); // Копируем дерево
-        this.active_node = this.root;      // Ставим активный узел на корень нового дерева
+        this.root = copyNodes(other.root); // O(n) — копируем все узлы
     }
 
-    // Метод для глубокого копирования дерева
+    /**
+     * Глубокое копирование
+     * @return
+     */
     public XTree<T> deepCopy() {
-        return new XTree<>(this);
+        return new XTree<>(this); // O(n)
     }
 
-    public XTree() {
-    }
+    public XTree() {}
 
-
+    /**
+     * Получить корень дерева
+     * @return
+     */
     public Joint<T> getRoot() {
         return root;
     }
 
+    /**
+     * Установить корень дерева
+     * @param root
+     */
     public void setRoot(Joint<T> root) {
         this.root = root;
     }
 
-    // NLR (Pre-order)
+    /**
+     * Обход и запись листов в список по методу NLR
+     * @param node
+     * @return
+     * @param <T>
+     */
     public static <T> List<T> traverseNLR(Joint<T> node) {
         List<T> result = new ArrayList<>();
         if (node != null) {
@@ -56,10 +150,15 @@ public class XTree<T> {
             result.addAll(traverseNLR(node.Left));
             result.addAll(traverseNLR(node.Right));
         }
-        return result;
+        return result; // O(n) — нужно обойти каждый узел
     }
 
-    // LNR (In-order)
+    /**
+     * Обход и запись листов в список по методу LNR
+     * @param node
+     * @return
+     * @param <T>
+     */
     public static <T> List<T> traverseLNR(Joint<T> node) {
         List<T> result = new ArrayList<>();
         if (node != null) {
@@ -67,10 +166,15 @@ public class XTree<T> {
             result.add(node.data);
             result.addAll(traverseLNR(node.Right));
         }
-        return result;
+        return result; // O(n) — нужно обойти каждый узел
     }
 
-    // LRN (Post-order)
+    /**
+     * Обход и запись листов в список по методу LRN
+     * @param node
+     * @return
+     * @param <T>
+     */
     public static <T> List<T> traverseLRN(Joint<T> node) {
         List<T> result = new ArrayList<>();
         if (node != null) {
@@ -78,34 +182,48 @@ public class XTree<T> {
             result.addAll(traverseLRN(node.Right));
             result.add(node.data);
         }
-        return result;
+        return result; // O(n) — нужно обойти каждый узел
     }
 
+    /**
+     * Вывод дерева в консоль
+     */
     public void print() {
         List<T> tRes = traverseLRN(this.root);
         for (T tRe : tRes) {
-            System.out.println(tRe);
+            System.out.println(tRe); // O(n)
         }
     }
 
-    // Применение к указанному узлу дерева функции, метод NLR, можно для печати оставить
-   public static <T> void applyFunction(Joint<T> node, Consumer<T> func) {
+    /**
+     * Применение функции без возврата с одним параметром к листьям
+     * @param node
+     * @param func
+     * @param <T>
+     */
+    public static <T> void applyFunction(Joint<T> node, Consumer<T> func) {
         if (node != null) {
             func.accept(node.data);
             applyFunction(node.Left, func);
             applyFunction(node.Right, func);
         }
+        // O(n) — обрабатываем каждый узел
     }
-    // Альтернативное применение функции с большими возможностями в плане используемой функции
+
+    /**
+     * Применение функции к листьям с параметрами и возвращаемым значением (data = func(data))
+     * @param node
+     * @param func
+     * @param <T>
+     */
     public static <T> void applyFunction(Joint<T> node, Function<T, T> func) {
         if (node != null) {
             node.data = func.apply(node.data);
             applyFunction(node.Left, func);
             applyFunction(node.Right, func);
         }
+        // O(n) — обрабатываем каждый узел
     }
-
-    // Удаление дерева
 
     /**
      * Удаление дерева
@@ -119,52 +237,59 @@ public class XTree<T> {
             node.Left = null;
             node.Right = null;
         }
+        // O(n) — удаление всех узлов
     }
-    // после вызова корню присваивать null
 
-    // Подсчет количества узлов в дереве
+    /**
+     * Подсчёт количества листьев в дереве
+     * @param node
+     * @return
+     * @param <T>
+     */
     private static <T> int pcountNodes(Joint <T> node) {
         if (node == null) {
             return 0;
         }
-        return 1 + pcountNodes(node.Left) + pcountNodes(node.Right);
+        return 1 + pcountNodes(node.Left) + pcountNodes(node.Right); // O(n) — считаем каждый узел
     }
 
     public int countNodes() {
-        return pcountNodes(this.root);
+        return pcountNodes(this.root); // O(n)
     }
 
-    // Определение глубины дерева (сломал)
+    /**
+     * Определение глубины дерева
+     * @param node
+     * @return
+     * @param <T>
+     */
     private static <T> int ptreeDepth(Joint<T> node) {
         if (node == null) return -1;
         int leftDepth = ptreeDepth(node.Left);
         int rightDepth = ptreeDepth(node.Right);
-        return Math.max(leftDepth, rightDepth) + 1;
+        return Math.max(leftDepth, rightDepth) + 1; // O(n) — нужно посетить каждый узел
     }
 
-   public int treeDepth() {
-        return ptreeDepth(this.root);
-   }
+    public int treeDepth() {
+        return ptreeDepth(this.root); // O(n)
+    }
 
     public boolean isEmpty() {
-        return root == null;
+        return root == null; // O(1)
     }
 
-    // Печать дерева в произвольном порядке (например, NLR)
-    public void printNLR() {
-        List<T> result = traverseNLR(this.root);
-        for (T data : result) {
-            System.out.println(data);
-        }
-    }
-
-    // Печать дерева с отступами, показывающими иерархию
+    /**
+     * Печать дерева с иерархией
+     * @param node
+     * @param level
+     */
     public void printTree(Joint<T> node, int level) {
         if (node != null) {
             printTree(node.Right, level + 1);  // Сначала правое поддерево
             System.out.println(" ".repeat(level * 4) + node.data);  // Печать с отступом
             printTree(node.Left, level + 1);   // Затем левое поддерево
         }
+        // O(n) — обходим все узлы
     }
 
 }
