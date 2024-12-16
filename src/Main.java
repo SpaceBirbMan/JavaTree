@@ -378,6 +378,8 @@ public class Main {
         }
         System.out.println();
 
+        tree.delete(-10);
+
         // Попытка вставить дубликаты
         tree.insert(2);
         tree.insert(2); // Проверка на устойчивость к дубликатам
@@ -396,6 +398,8 @@ public class Main {
             System.out.print(value + " ");
         }
         System.out.println();
+
+        AVLTree<Integer> nullT = new AVLTree<>();
     }
 }
 

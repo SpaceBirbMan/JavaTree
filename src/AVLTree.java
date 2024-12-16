@@ -21,10 +21,11 @@ public class AVLTree<T extends Comparable<T>> implements Iterable<T> {
     private AVLNode<T> root;
 
 
+// nvrmnd
 
     /**
      * Вставляет элемент в AVL дерево
-     * @param data значение для вставки
+     * @param data значение для вставки (O(logN)/O(n))
      */
     public void insert(T data) {
         root = insert(root, data);
@@ -48,13 +49,20 @@ public class AVLTree<T extends Comparable<T>> implements Iterable<T> {
     }
 
     /**
-     * Удаляет элемент из AVL дерева
-     * @param data значение для удаления
+     * Delete element(tree/subtree) - data from AVL
+     * (O(logN)/O(n))
      */
     public void delete(T data) {
         root = delete(root, data);
     }
 
+    /**
+     * Delete element(tree/subtree) - data from AVL
+     *      * (O(logN)/O(n))
+     * @param node
+     * @param data
+     * @return
+     */
     private AVLNode<T> delete(AVLNode<T> node, T data) {
         if (node == null) {
             return null;
@@ -80,6 +88,11 @@ public class AVLTree<T extends Comparable<T>> implements Iterable<T> {
         return balance(node);
     }
 
+    /**
+     * Find minimal element
+     * @param node
+     * @return
+     */
     private AVLNode<T> findMin(AVLNode<T> node) {
         while (node.Left != null) {
             node = (AVLNode<T>) node.Left;
@@ -87,16 +100,27 @@ public class AVLTree<T extends Comparable<T>> implements Iterable<T> {
         return node;
     }
 
+    /**
+     * Returns root of tree
+     * @return
+     */
+    public AVLNode<T> getRoot() {
+        return root;
+    }
+
+    /**
+     * Balance leafs and subtrees in tree. O(1)
+     */
     private AVLNode<T> balance(AVLNode<T> node) {
         updateHeight(node);
         int balanceFactor = getBalanceFactor(node);
 
-        if (balanceFactor > 1) {
+        if (balanceFactor > 1) { // BF > 1 -> Поворот влево
             if (getBalanceFactor((AVLNode<T>) node.Left) < 0) {
                 node.Left = rotateLeft((AVLNode<T>) node.Left);
             }
             node = rotateRight(node);
-        } else if (balanceFactor < -1) {
+        } else if (balanceFactor < -1) { // BF < -1 -> Поворот вправо
             if (getBalanceFactor((AVLNode<T>) node.Right) > 0) {
                 node.Right = rotateRight((AVLNode<T>) node.Right);
             }
@@ -106,18 +130,31 @@ public class AVLTree<T extends Comparable<T>> implements Iterable<T> {
         return node;
     }
 
+    /**
+     * Update height in node, using left 'n right heights
+     */
     private void updateHeight(AVLNode<T> node) {
         node.setHeight(1 + Math.max(getHeight((AVLNode<T>) node.Left), getHeight((AVLNode<T>) node.Right)));
     }
 
+    /**
+     * Return height if it not null, else return -1
+     */
     private int getHeight(AVLNode<T> node) {
         return node == null ? -1 : node.getHeight();
     }
 
+    /**
+     * return zero (if node is null) or node balance factor
+     */
     private int getBalanceFactor(AVLNode<T> node) {
         return node == null ? 0 : getHeight((AVLNode<T>) node.Left) - getHeight((AVLNode<T>) node.Right);
     }
 
+    /**
+     * Rotate right in tree, returns node, replaced on right place
+     * O(1)
+     */
     private AVLNode<T> rotateRight(AVLNode<T> y) {
         AVLNode<T> x = (AVLNode<T>) y.Left;
         y.Left = x.Right;
@@ -127,6 +164,10 @@ public class AVLTree<T extends Comparable<T>> implements Iterable<T> {
         return x;
     }
 
+    /**
+     * Rotate left in tree, returns node, replaced on right place
+     * O(1)
+     */
     private AVLNode<T> rotateLeft(AVLNode<T> x) {
         AVLNode<T> y = (AVLNode<T>) x.Right;
         x.Right = y.Left;
@@ -137,18 +178,20 @@ public class AVLTree<T extends Comparable<T>> implements Iterable<T> {
     }
 
     /**
-     * Итератор по элементам AVL дерева в порядке возрастания
+     * AVL Iterator
      */
     @Override
     public Iterator<T> iterator() {
         return new AVLIterator<>(root);
     }
 
+
     /**
-     * Итератор для AVL дерева
+     * AVL tree iterator (NLR traversal)
      */
     private static class AVLIterator<T extends Comparable<T>> implements Iterator<T> {
-        private Stack<Joint<T>> stack = new Stack<>();
+        private final Stack<Joint<T>> stack = new Stack<>(); // stack using for remember, what joints already visited, and be able to move back
+        // 'cause we haven't pointer on parent in joint
 
         public AVLIterator(Joint<T> root) {
             pushLeft(root);
@@ -166,14 +209,19 @@ public class AVLTree<T extends Comparable<T>> implements Iterable<T> {
             return !stack.isEmpty();
         }
 
+        /**
+         * Возвращает данные узла, следующего в стеке, или исключение, если больше элементов нет
+         * Returns node data, next in the stack, or error message and null, if no more elements
+         */
         @Override
         public T next() {
             if (!hasNext()) {
-                throw new NoSuchElementException();
+                System.err.println("Attempt to access element from an empty iterator");
+                return null;
             }
-            Joint<T> node = stack.pop();
-            pushLeft(node.Right);
-            return node.data;
+                Joint<T> node = stack.pop();
+                pushLeft(node.Right);
+                return node.data;
         }
     }
 }
